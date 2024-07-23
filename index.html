@@ -1,22 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sliding Puzzle Game with Timer</title>
+    <title>TMA Game</title>
     <style>
         body {
             display: flex;
             flex-direction: column;
             align-items: center;
             height: 100vh;
-            background-color: #f0f0f0;
             margin: 0;
             font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
             overflow: hidden;
         }
-
         #game-container {
             display: grid;
             grid-template-columns: repeat(6, 60px);
@@ -26,66 +24,44 @@
             border: 2px solid #ccc;
             position: relative;
         }
-
         .grid-cell {
             width: 60px;
             height: 60px;
             box-sizing: border-box;
             border: 1px solid #ccc;
-            display: flex;
-            justify-content: center;
-            align-items: center;
         }
-
-        .candlestick,
-        .golden-key {
+        .candlestick, .golden-key {
             position: absolute;
             display: flex;
             justify-content: center;
             align-items: center;
-            border: 2px solid #000;
             cursor: pointer;
             box-sizing: border-box;
             transition: transform 0.3s ease, left 0.3s, top 0.3s;
         }
-
         .candlestick.red {
             background-color: red;
         }
-
         .candlestick.green {
             background-color: green;
         }
-
         .golden-key {
             background-color: gold;
-            border-color: goldenrod;
+            border: 2px solid goldenrod;
         }
-
-        #reset-button {
+        #reset-button, #timer-toggle {
             margin-top: 20px;
             padding: 10px 20px;
             background-color: #007bff;
             color: white;
             border: none;
             cursor: pointer;
+            font-size: 16px;
         }
-
         #timer {
             font-size: 24px;
             margin-bottom: 20px;
         }
-
-        #timer-toggle {
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            margin-bottom: 10px;
-        }
-
         #message {
             font-size: 18px;
             font-weight: bold;
@@ -103,13 +79,10 @@
         }
     </style>
 </head>
-
 <body>
     <div id="timer">Time: 30s</div>
     <button id="timer-toggle">Disable Timer</button>
-    <div id="game-container">
-        <div id="message"></div>
-    </div>
+    <div id="game-container"></div>
     <button id="reset-button">Reset</button>
     <script>
         class Timer {
@@ -137,7 +110,6 @@
                         if (this.timeLeft <= 0) {
                             clearInterval(this.timerInterval);
                             this.showMessage('Time is up! Game over.');
-                            this.resetTimer();
                         }
                     }, 1000);
                 }
@@ -176,7 +148,7 @@
                 this.cellSize = 60;
                 this.gridSize = 6;
                 this.isMoving = false;
-                this.resetButton.addEventListener('click', () => this.init());
+                this.selectedElement = null;
                 this.init();
             }
 
@@ -184,7 +156,7 @@
                 this.container.innerHTML = '<div id="message"></div>';
                 this.createGrid();
                 this.createElements();
-                this.addDragAndDrop();
+                this.addEventListeners();
             }
 
             createGrid() {
@@ -218,6 +190,7 @@
                     if (element.color) el.classList.add(element.color);
                     el.style.width = element.orientation === 'horizontal' ? `${this.cellSize * element.length - 2}px` : `${this.cellSize - 2}px`;
                     el.style.height = element.orientation === 'vertical' ? `${this.cellSize * element.length - 2}px` : `${this.cellSize - 2}px`;
+
                     const cellIndex = element.cells[0];
                     const cell = this.container.querySelector(`.grid-cell[data-index="${cellIndex}"]`);
                     el.style.top = `${cell.offsetTop}px`;
@@ -229,91 +202,97 @@
                 });
             }
 
-            addDragAndDrop() {
-                let currentElement = null;
-                let startX, startY, startLeft, startTop;
+            addEventListeners() {
+                this.container.addEventListener('mousedown', (e) => this.onMouseDown(e));
+                this.container.addEventListener('touchstart', (e) => this.onMouseDown(e), { passive: false });
+                this.resetButton.addEventListener('click', () => this.init());
+            }
 
-                const onMouseDown = (e) => {
-                    if (this.isMoving) return;
-                    if (e.target.classList.contains('candlestick') || e.target.classList.contains('golden-key')) {
-                        this.isMoving = true;
-                        currentElement = e.target;
-                        startX = e.clientX || e.touches[0].clientX;
-                        startY = e.clientY || e.touches[0].clientY;
-                        startLeft = parseInt(currentElement.style.left);
-                        startTop = parseInt(currentElement.style.top);
-                        document.addEventListener('mousemove', onMouseMove);
-                        document.addEventListener('mouseup', onMouseUp);
-                        document.addEventListener('touchmove', onTouchMove);
-                        document.addEventListener('touchend', onTouchEnd);
-                    }
-                };
+            onMouseDown(e) {
+                if (this.isMoving) return;
+                const target = e.target;
 
-                const onMouseMove = (e) => {
-                    moveElement(e.clientX, e.clientY);
-                };
+                if (target.classList.contains('candlestick') || target.classList.contains('golden-key')) {
+                    e.preventDefault();
+                    this.isMoving = true;
+                    this.selectedElement = target;
 
-                const onTouchMove = (e) => {
-                    moveElement(e.touches[0].clientX, e.touches[0].clientY);
-                };
+                    this.startX = e.clientX || e.touches[0].clientX;
+                    this.startY = e.clientY || e.touches[0].clientY;
+                    this.startLeft = parseInt(target.style.left, 10);
+                    this.startTop = parseInt(target.style.top, 10);
+                    this.addMoveListeners();
+                }
+            }
 
-                const moveElement = (clientX, clientY) => {
-                    if (!currentElement) return;
-                    const dx = clientX - startX;
-                    const dy = clientY - startY;
+            addMoveListeners() {
+                document.addEventListener('mousemove', this.onMouseMove.bind(this));
+                document.addEventListener('mouseup', this.onMouseUp.bind(this));
+                document.addEventListener('touchmove', this.onTouchMove.bind(this), { passive: false });
+                document.addEventListener('touchend', this.onTouchEnd.bind(this));
+            }
 
-                    let newLeft = startLeft + dx;
-                    let newTop = startTop + dy;
+            onMouseMove(e) {
+                this.moveElement(e.clientX, e.clientY);
+            }
 
-                    if (currentElement.dataset.orientation === 'horizontal') {
-                        newTop = startTop;
-                    } else {
-                        newLeft = startLeft;
-                    }
+            onTouchMove(e) {
+                this.moveElement(e.touches[0].clientX, e.touches[0].clientY);
+            }
 
-                    currentElement.style.left = `${newLeft}px`;
-                    currentElement.style.top = `${newTop}px`;
-                };
+            moveElement(clientX, clientY) {
+                if (!this.selectedElement) return;
 
-                const onMouseUp = (e) => {
-                    finalizeMove(e.clientX, e.clientY);
-                };
+                const dx = clientX - this.startX;
+                const dy = clientY - this.startY;
+                let newLeft = this.startLeft + dx;
+                let newTop = this.startTop + dy;
 
-                const onTouchEnd = (e) => {
-                    finalizeMove(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
-                };
+                if (this.selectedElement.dataset.orientation === 'horizontal') {
+                    newTop = this.startTop;
+                } else {
+                    newLeft = this.startLeft;
+                }
 
-                const finalizeMove = (clientX, clientY) => {
-                    if (!currentElement) return;
+                this.selectedElement.style.left = `${newLeft}px`;
+                this.selectedElement.style.top = `${newTop}px`;
+            }
 
-                    let newLeft = Math.round((startLeft + (currentElement.dataset.orientation === 'horizontal' ? clientX - startX : 0)) / this.cellSize) * this.cellSize;
-                    let newTop = Math.round((startTop + (currentElement.dataset.orientation === 'vertical' ? clientY - startY : 0)) / this.cellSize) * this.cellSize;
+            onMouseUp(e) {
+                this.finalizeMove(e.clientX, e.clientY);
+            }
 
-                    const newPosition = [
-                        newTop / this.cellSize,
-                        newLeft / this.cellSize
-                    ];
+            onTouchEnd(e) {
+                this.finalizeMove(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+            }
 
-                    if (this.isValidMove(currentElement, newPosition)) {
-                        currentElement.style.left = `${newLeft}px`;
-                        currentElement.style.top = `${newTop}px`;
-                        const newCells = this.calculateCells(newPosition, currentElement.dataset.length, currentElement.dataset.orientation);
-                        currentElement.dataset.cells = JSON.stringify(newCells);
-                    } else {
-                        currentElement.style.left = `${startLeft}px`;
-                        currentElement.style.top = `${startTop}px`;
-                    }
+            finalizeMove(clientX, clientY) {
+                if (!this.selectedElement) return;
 
-                    document.removeEventListener('mousemove', onMouseMove);
-                    document.removeEventListener('mouseup', onMouseUp);
-                    document.removeEventListener('touchmove', onTouchMove);
-                    document.removeEventListener('touchend', onTouchEnd);
-                    currentElement = null;
-                    this.isMoving = false;
-                };
+                const newLeft = Math.round((this.startLeft + (this.selectedElement.dataset.orientation === 'horizontal' ? clientX - this.startX : 0)) / this.cellSize) * this.cellSize;
+                const newTop = Math.round((this.startTop + (this.selectedElement.dataset.orientation === 'vertical' ? clientY - this.startY : 0)) / this.cellSize) * this.cellSize;
+                const newPosition = [newTop / this.cellSize, newLeft / this.cellSize];
 
-                this.container.addEventListener('mousedown', onMouseDown);
-                this.container.addEventListener('touchstart', onMouseDown);
+                if (this.isValidMove(this.selectedElement, newPosition)) {
+                    this.selectedElement.style.left = `${newLeft}px`;
+                    this.selectedElement.style.top = `${newTop}px`;
+                    const newCells = this.calculateCells(newPosition, this.selectedElement.dataset.length, this.selectedElement.dataset.orientation);
+                    this.selectedElement.dataset.cells = JSON.stringify(newCells);
+                } else {
+                    this.selectedElement.style.left = `${this.startLeft}px`;
+                    this.selectedElement.style.top = `${this.startTop}px`;
+                }
+
+                this.removeMoveListeners();
+                this.selectedElement = null;
+                this.isMoving = false;
+            }
+
+            removeMoveListeners() {
+                document.removeEventListener('mousemove', this.onMouseMove.bind(this));
+                document.removeEventListener('mouseup', this.onMouseUp.bind(this));
+                document.removeEventListener('touchmove', this.onTouchMove.bind(this));
+                document.removeEventListener('touchend', this.onTouchEnd.bind(this));
             }
 
             calculateCells(position, length, orientation) {
@@ -356,5 +335,4 @@
         });
     </script>
 </body>
-
 </html>
