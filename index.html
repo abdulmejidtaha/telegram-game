@@ -241,7 +241,7 @@
                     el.style.width = element.orientation === 'horizontal' ? `${this.cellSize * element.length - 2}px` : `${this.cellSize - 2}px`;
                     el.style.height = element.orientation === 'vertical' ? `${this.cellSize * element.length - 2}px` : `${this.cellSize - 2}px`;
                     const cellIndex = element.cells[0];
-                    const cell = this.container.querySelector(`.grid-cell[data-index='${cellIndex}']`);
+                    const cell = this.container.querySelector(`.grid-cell[data-index="${cellIndex}"]`);
                     el.style.top = `${cell.offsetTop}px`;
                     el.style.left = `${cell.offsetLeft}px`;
                     el.dataset.type = element.type;
@@ -361,11 +361,17 @@
 
                 const newCells = this.calculateCells(newPosition, length, orientation);
                 const otherElements = Array.from(this.container.querySelectorAll('.candlestick, .golden-key')).filter(el => el !== element);
-                for (let el of otherElements) {
-                    const elCells = JSON.parse(el.dataset.cells);
-                    if (newCells.some(cell => elCells.includes(cell))) {
-                        return false;
-                    }
+
+                // Check for any element between the current and target position
+                const isPathClear = newCells.every(cell => {
+                    return !otherElements.some(el => {
+                        const elCells = JSON.parse(el.dataset.cells);
+                        return elCells.includes(cell);
+                    });
+                });
+
+                if (!isPathClear) {
+                    return false;
                 }
 
                 return true;
