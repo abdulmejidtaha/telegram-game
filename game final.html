@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sliding Puzzle Game with Timer</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        #game-container {
+            display: grid;
+            grid-template-columns: repeat(6, 60px);
+            grid-template-rows: repeat(6, 60px);
+            gap: 2px;
+            background-color: #e0e0e0;
+            border: 2px solid #ccc;
+            position: relative;
+        }
+        .grid-cell {
+            width: 60px;
+            height: 60px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.3s ease;
+        }
+        .grid-cell:hover {
+            background-color: #ddd;
+        }
+        .candlestick, .golden-key {
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid #000;
+            cursor: pointer;
+            box-sizing: border-box;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+        .candlestick.red {
+            background-color: red;
+        }
+        .candlestick.green {
+            background-color: green;
+        }
+        .golden-key {
+            background-color: gold;
+            border-color: goldenrod;
+        }
+        #reset-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        #reset-button:hover {
+            background-color: #0056b3;
+        }
+        #timer {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        #timer-toggle {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #timer-toggle:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div id="timer">Time: 30s</div>
+    <button id="timer-toggle">Disable Timer</button>
+    <div id="game-container"></div>
+    <button id="reset-button">Reset</button>
+    <script>
+        class Timer {
+            constructor(timerId, toggleButtonId) {
+                this.timerDisplay = document.getElementById(timerId);
+                this.timerToggle = document.getElementById(toggleButtonId);
+                this.timerEnabled = true;
+                this.timeLeft = 30;
+                this.timerInterval = null;
+
+                this.timerToggle.addEventListener('click', () => this.toggleTimer());
+                this.startTimer();
+            }
+
+            startTimer() {
+                if (this.timerEnabled) {
+                    clearInterval(this.timerInterval);
+                    this.timeLeft = 30;
+                    this.timerDisplay.textContent = `Time: ${this.timeLeft}s`;
+
+                    this.timerInterval = setInterval(() => {
+                        this.timeLeft--;
+                        this.timerDisplay.textContent = `Time: ${this.timeLeft}s`;
+
+                        if (this.timeLeft <= 0) {
+                            clearInterval(this.timerInterval);
+                            alert('Time is up! Game over.');
+                            this.resetTimer();
+                        }
+                    }, 1000);
+                }
+            }
+
+            resetTimer() {
+                this.timeLeft = 30;
+                this.timerDisplay.textContent = `Time: ${this.timeLeft}s`;
+            }
+
+            toggleTimer() {
+                this.timerEnabled = !this.timerEnabled;
+                this.timerToggle.textContent = this.timerEnabled ? 'Disable Timer' : 'Enable Timer';
+                if (this.timerEnabled) {
+                    this.startTimer();
+                } else {
+                    clearInterval(this.timerInterval);
+                    this.timerDisplay.textContent = 'Timer: Off';
+                }
+            }
+        }
+
+        class PuzzleGame {
+            constructor(containerId) {
+                this.container = document.getElementById(containerId);
+                this.resetButton = document.getElementById('reset-button');
+                this.cellSize = 60;
+                this.gridSize = 6;
+                this.resetButton.addEventListener('click', () => this.init());
+                this.init();
+            }
+
+            init() {
+                this.container.innerHTML = '';
+                this.createGrid();
+                this.createElements();
+                this.addDragAndDrop();
+            }
+
+            createGrid() {
+                for (let i = 1; i <= this.gridSize * this.gridSize; i++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('grid-cell');
+                    cell.dataset.index = i;
+                    cell.textContent = i;
+                    this.container.appendChild(cell);
+                }
+            }
+
+            createElements() {
+                this.elements = [
+                    { type: 'golden-key', length: 2, cells: [15, 16], orientation: 'horizontal' },
+                    { type: 'candlestick', length: 3, cells: [2, 8, 14], orientation: 'vertical', color: 'red' },
+                    { type: 'candlestick', length: 3, cells: [11, 17, 23], orientation: 'vertical', color: 'red' },
+                    { type: 'candlestick', length: 2, cells: [7, 13], orientation: 'vertical', color: 'red' },
+                    { type: 'candlestick', length: 2, cells: [4, 10], orientation: 'vertical', color: 'red' },
+                    { type: 'candlestick', length: 2, cells: [5, 6], orientation: 'horizontal', color: 'green' },
+                    { type: 'candlestick', length: 2, cells: [19, 20], orientation: 'horizontal', color: 'green' },
+                    { type: 'candlestick', length: 2, cells: [21, 27], orientation: 'vertical', color: 'red' },
+                    { type: 'candlestick', length: 2, cells: [28, 29], orientation: 'horizontal', color: 'green' },
+                    { type: 'candlestick', length: 2, cells: [32, 33], orientation: 'horizontal', color: 'green' },
+                    { type: 'candlestick', length: 2, cells: [25, 31], orientation: 'vertical', color: 'red' },
+                    { type: 'candlestick', length: 2, cells: [30, 36], orientation: 'vertical', color: 'red' },
+                ];
+
+                this.elements.forEach(element => {
+                    const el = document.createElement('div');
+                    el.classList.add(element.type);
+                    if (element.color) el.classList.add(element.color);
+                    el.style.width = element.orientation === 'horizontal' ? `${this.cellSize * element.length - 2}px` : `${this.cellSize - 2}px`;
+                    el.style.height = element.orientation === 'vertical' ? `${this.cellSize * element.length - 2}px` : `${this.cellSize - 2}px`;
+                    const cellIndex = element.cells[0];
+                    const cell = this.container.querySelector(`.grid-cell[data-index='${cellIndex}']`);
+                    el.style.top = `${cell.offsetTop}px`;
+                    el.style.left = `${cell.offsetLeft}px`;
+                    el.dataset.type = element.type;
+                    el.dataset.length = element.length;
+                    el.dataset.orientation = element.orientation;
+                    el.dataset.cells = JSON.stringify(element.cells);
+                    this.container.appendChild(el);
+                });
+            }
+
+            addDragAndDrop() {
+                let currentElement = null;
+                let startX, startY, startLeft, startTop;
+
+                const onMouseDown = (e) => {
+                    if (e.target.classList.contains('candlestick') || e.target.classList.contains('golden-key')) {
+                        currentElement = e.target;
+                        startX = e.clientX || e.touches[0].clientX;
+                        startY = e.clientY || e.touches[0].clientY;
+                        startLeft = parseInt(currentElement.style.left);
+                        startTop = parseInt(currentElement.style.top);
+                        document.addEventListener('mousemove', onMouseMove);
+                        document.addEventListener('mouseup', onMouseUp);
+                        document.addEventListener('touchmove', onTouchMove);
+                        document.addEventListener('touchend', onTouchEnd);
+                        e.preventDefault();
+                    }
+                };
+
+                const onMouseMove = (e) => {
+                    moveElement(e.clientX, e.clientY);
+                };
+
+                const onTouchMove = (e) => {
+                    moveElement(e.touches[0].clientX, e.touches[0].clientY);
+                };
+
+                const moveElement = (clientX, clientY) => {
+                    if (!currentElement) return;
+                    const dx = clientX - startX;
+                    const dy = clientY - startY;
+
+                    let newLeft = startLeft;
+                    let newTop = startTop;
+
+                    if (currentElement.dataset.orientation === 'horizontal') {
+                        newLeft = startLeft + dx;
+                    } else {
+                        newTop = startTop + dy;
+                    }
+
+                    currentElement.style.left = `${newLeft}px`;
+                    currentElement.style.top = `${newTop}px`;
+                };
+
+                const onMouseUp = (e) => {
+                    finalizeMove(e.clientX, e.clientY);
+                };
+
+                const onTouchEnd = (e) => {
+                    finalizeMove(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+                };
+
+                const finalizeMove = (clientX, clientY) => {
+                    if (!currentElement) return;
+
+                    let newLeft = Math.round((startLeft + (currentElement.dataset.orientation === 'horizontal' ? clientX - startX : 0)) / this.cellSize) * this.cellSize;
+                    let newTop = Math.round((startTop + (currentElement.dataset.orientation === 'vertical' ? clientY - startY : 0)) / this.cellSize) * this.cellSize;
+
+                    const newPosition = [
+                        newTop / this.cellSize,
+                        newLeft / this.cellSize
+                    ];
+
+                    if (this.isValidMove(currentElement, newPosition)) {
+                        currentElement.style.left = `${newLeft}px`;
+                        currentElement.style.top = `${newTop}px`;
+                        const newCells = this.calculateCells(newPosition, currentElement.dataset.length, currentElement.dataset.orientation);
+                        currentElement.dataset.cells = JSON.stringify(newCells);
+                        if (currentElement.dataset.type === 'golden-key' && JSON.stringify(newCells) === JSON.stringify([17, 18])) {
+                            alert('Congratulations!. Now you Can try the real one');
+                        }
+                    } else {
+                        currentElement.style.left = `${startLeft}px`;
+                        currentElement.style.top = `${startTop}px`;
+                    }
+
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+                    document.removeEventListener('touchmove', onTouchMove);
+                    document.removeEventListener('touchend', onTouchEnd);
+                    currentElement = null;
+                };
+
+                this.container.querySelectorAll('.candlestick, .golden-key').forEach(element => {
+                    element.addEventListener('mousedown', onMouseDown);
+                    element.addEventListener('touchstart', onMouseDown);
+                });
+            }
+
+            calculateCells(position, length, orientation) {
+                const cells = [];
+                const [top, left] = position;
+                for (let i = 0; i < length; i++) {
+                    cells.push(orientation === 'horizontal' ? top * this.gridSize + left + i + 1 : (top + i) * this.gridSize + left + 1);
+                }
+                return cells;
+            }
+
+            isValidMove(element, newPosition) {
+                const length = parseInt(element.dataset.length);
+                const orientation = element.dataset.orientation;
+                const [newTop, newLeft] = newPosition;
+
+                if (newTop < 0 || newLeft < 0 ||
+                    (orientation === 'horizontal' && newLeft + length > this.gridSize) ||
+                    (orientation === 'vertical' && newTop + length > this.gridSize)) {
+                    return false;
+                }
+
+                const newCells = this.calculateCells(newPosition, length, orientation);
+                const otherElements = Array.from(this.container.querySelectorAll('.candlestick, .golden-key')).filter(el => el !== element);
+                for (let el of otherElements) {
+                    const elCells = JSON.parse(el.dataset.cells);
+                    if (newCells.some(cell => elCells.includes(cell))) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new Timer('timer', 'timer-toggle');
+            new PuzzleGame('game-container');
+        });
+    </script>
+</body>
+</html>
