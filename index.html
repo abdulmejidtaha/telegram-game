@@ -194,6 +194,7 @@
                 this.cellSize = 60;
                 this.gridSize = 6;
                 this.highlightedElements = [];
+                this.isMoving = false; // Flag to indicate if an element is being moved
                 this.resetButton.addEventListener('click', () => this.init());
                 this.init();
 
@@ -244,10 +245,9 @@
                     const cell = this.container.querySelector(`.grid-cell[data-index="${cellIndex}"]`);
                     el.style.top = `${cell.offsetTop}px`;
                     el.style.left = `${cell.offsetLeft}px`;
-                    el.dataset.type = element.type;
                     el.dataset.length = element.length;
-                    el.dataset.orientation = element.orientation;
                     el.dataset.cells = JSON.stringify(element.cells);
+                    el.dataset.orientation = element.orientation;
                     this.container.appendChild(el);
                 });
             }
@@ -257,7 +257,9 @@
                 let startX, startY, startLeft, startTop;
 
                 const onMouseDown = (e) => {
+                    if (this.isMoving) return; // Prevent interaction if another element is being moved
                     if (e.target.classList.contains('candlestick') || e.target.classList.contains('golden-key')) {
+                        this.isMoving = true; // Set flag to indicate movement has started
                         currentElement = e.target;
                         this.highlightedElements = Array.from(this.container.querySelectorAll('.candlestick, .golden-key')).filter(el => el !== currentElement);
                         this.highlightedElements.forEach(el => el.classList.add('highlight'));
@@ -333,6 +335,7 @@
                     document.removeEventListener('touchmove', onTouchMove);
                     document.removeEventListener('touchend', onTouchEnd);
                     currentElement = null;
+                    this.isMoving = false; // Reset flag after movement is complete
                 };
 
                 this.container.addEventListener('mousedown', onMouseDown);
