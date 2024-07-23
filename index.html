@@ -86,17 +86,26 @@
         }
         #message {
             font-size: 18px;
-            margin-top: 10px;
             color: #d9534f;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
         }
     </style>
 </head>
 <body>
     <div id="timer">Time: 30s</div>
     <button id="timer-toggle">Disable Timer</button>
-    <div id="game-container"></div>
+    <div id="game-container">
+        <div id="message"></div>
+    </div>
     <button id="reset-button">Reset</button>
-    <div id="message"></div>
     <script>
         class Timer {
             constructor(timerId, toggleButtonId) {
@@ -148,8 +157,9 @@
             showMessage(message) {
                 const messageElement = document.getElementById('message');
                 messageElement.textContent = message;
+                messageElement.style.display = 'block';
                 setTimeout(() => {
-                    messageElement.textContent = '';
+                    messageElement.style.display = 'none';
                 }, 3000);
             }
         }
@@ -165,7 +175,7 @@
             }
 
             init() {
-                this.container.innerHTML = '';
+                this.container.innerHTML = '<div id="message"></div>';
                 this.createGrid();
                 this.createElements();
                 this.addDragAndDrop();
@@ -339,8 +349,9 @@
             showMessage(message) {
                 const messageElement = document.getElementById('message');
                 messageElement.textContent = message;
+                messageElement.style.display = 'block';
                 setTimeout(() => {
-                    messageElement.textContent = '';
+                    messageElement.style.display = 'none';
                 }, 3000);
             }
         }
