@@ -84,18 +84,6 @@
         #timer-toggle:hover {
             background-color: #0056b3;
         }
-        #scroll-toggle {
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            margin-bottom: 10px;
-        }
-        #scroll-toggle:hover {
-            background-color: #0056b3;
-        }
         #message {
             font-size: 18px;
             margin-top: 10px;
@@ -106,7 +94,6 @@
 <body>
     <div id="timer">Time: 30s</div>
     <button id="timer-toggle">Disable Timer</button>
-    <button id="scroll-toggle">Disable Scrolling</button>
     <div id="game-container"></div>
     <button id="reset-button">Reset</button>
     <div id="message"></div>
@@ -358,29 +345,9 @@
             }
         }
 
-        class ScrollControl {
-            constructor(scrollToggleId) {
-                this.scrollToggle = document.getElementById(scrollToggleId);
-                this.scrollEnabled = true;
-
-                this.scrollToggle.addEventListener('click', () => this.toggleScroll());
-            }
-
-            toggleScroll() {
-                this.scrollEnabled = !this.scrollEnabled;
-                this.scrollToggle.textContent = this.scrollEnabled ? 'Disable Scrolling' : 'Enable Scrolling';
-                if (this.scrollEnabled) {
-                    document.body.style.overflow = 'auto';
-                } else {
-                    document.body.style.overflow = 'hidden';
-                }
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
             new Timer('timer', 'timer-toggle');
             new PuzzleGame('game-container');
-            new ScrollControl('scroll-toggle');
         });
     </script>
 </body>
