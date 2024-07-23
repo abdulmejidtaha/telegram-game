@@ -14,6 +14,7 @@
             background-color: #f0f0f0;
             margin: 0;
             font-family: Arial, sans-serif;
+            overflow: hidden; /* Prevent page scroll */
         }
 
         #game-container {
@@ -50,7 +51,7 @@
             border: 2px solid #000;
             cursor: pointer;
             box-sizing: border-box;
-            transition: transform 0.3s ease, background-color 0.3s ease;
+            transition: transform 0.3s ease, background-color 0.3s ease, left 0.3s, top 0.3s; /* Smooth movement */
         }
 
         .candlestick.red {
@@ -105,6 +106,7 @@
 
         #message {
             font-size: 18px;
+            font-weight: bold; /* Make message bold */
             color: #d9534f;
             position: absolute;
             top: 50%;
@@ -115,6 +117,7 @@
             padding: 10px;
             border-radius: 5px;
             display: none;
+            z-index: 1000; /* Ensure message is displayed over everything */
         }
     </style>
 </head>
