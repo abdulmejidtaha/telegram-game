@@ -14,7 +14,7 @@
             background-color: #f0f0f0;
             margin: 0;
             font-family: Arial, sans-serif;
-            overflow: hidden; /* Prevent page scroll */
+            overflow: hidden;
         }
 
         #game-container {
@@ -35,11 +35,6 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: background-color 0.3s ease;
-        }
-
-        .grid-cell:hover {
-            background-color: #ddd;
         }
 
         .candlestick,
@@ -51,7 +46,7 @@
             border: 2px solid #000;
             cursor: pointer;
             box-sizing: border-box;
-            transition: transform 0.3s ease, background-color 0.3s ease, left 0.3s, top 0.3s; /* Smooth movement */
+            transition: transform 0.3s ease, left 0.3s, top 0.3s;
         }
 
         .candlestick.red {
@@ -67,10 +62,6 @@
             border-color: goldenrod;
         }
 
-        .highlight {
-            border: 2px solid #007bff;
-        }
-
         #reset-button {
             margin-top: 20px;
             padding: 10px 20px;
@@ -78,11 +69,6 @@
             color: white;
             border: none;
             cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        #reset-button:hover {
-            background-color: #0056b3;
         }
 
         #timer {
@@ -100,13 +86,9 @@
             margin-bottom: 10px;
         }
 
-        #timer-toggle:hover {
-            background-color: #0056b3;
-        }
-
         #message {
             font-size: 18px;
-            font-weight: bold; /* Make message bold */
+            font-weight: bold;
             color: #d9534f;
             position: absolute;
             top: 50%;
@@ -117,7 +99,7 @@
             padding: 10px;
             border-radius: 5px;
             display: none;
-            z-index: 1000; /* Ensure message is displayed over everything */
+            z-index: 1000;
         }
     </style>
 </head>
@@ -193,13 +175,9 @@
                 this.resetButton = document.getElementById('reset-button');
                 this.cellSize = 60;
                 this.gridSize = 6;
-                this.highlightedElements = [];
-                this.isMoving = false; // Flag to indicate if an element is being moved
+                this.isMoving = false;
                 this.resetButton.addEventListener('click', () => this.init());
                 this.init();
-
-                this.container.addEventListener('mousedown', this.onMouseDown.bind(this));
-                this.container.addEventListener('touchstart', this.onMouseDown.bind(this));
             }
 
             init() {
@@ -214,7 +192,6 @@
                     const cell = document.createElement('div');
                     cell.classList.add('grid-cell');
                     cell.dataset.index = i;
-                    cell.textContent = i;
                     this.container.appendChild(cell);
                 }
             }
@@ -257,12 +234,10 @@
                 let startX, startY, startLeft, startTop;
 
                 const onMouseDown = (e) => {
-                    if (this.isMoving) return; // Prevent interaction if another element is being moved
+                    if (this.isMoving) return;
                     if (e.target.classList.contains('candlestick') || e.target.classList.contains('golden-key')) {
-                        this.isMoving = true; // Set flag to indicate movement has started
+                        this.isMoving = true;
                         currentElement = e.target;
-                        this.highlightedElements = Array.from(this.container.querySelectorAll('.candlestick, .golden-key')).filter(el => el !== currentElement);
-                        this.highlightedElements.forEach(el => el.classList.add('highlight'));
                         startX = e.clientX || e.touches[0].clientX;
                         startY = e.clientY || e.touches[0].clientY;
                         startLeft = parseInt(currentElement.style.left);
@@ -329,13 +304,12 @@
                         currentElement.style.top = `${startTop}px`;
                     }
 
-                    this.highlightedElements.forEach(el => el.classList.remove('highlight'));
                     document.removeEventListener('mousemove', onMouseMove);
                     document.removeEventListener('mouseup', onMouseUp);
                     document.removeEventListener('touchmove', onTouchMove);
                     document.removeEventListener('touchend', onTouchEnd);
                     currentElement = null;
-                    this.isMoving = false; // Reset flag after movement is complete
+                    this.isMoving = false;
                 };
 
                 this.container.addEventListener('mousedown', onMouseDown);
@@ -365,7 +339,6 @@
                 const newCells = this.calculateCells(newPosition, length, orientation);
                 const otherElements = Array.from(this.container.querySelectorAll('.candlestick, .golden-key')).filter(el => el !== element);
 
-                // Check for any element between the current and target position
                 const isPathClear = newCells.every(cell => {
                     return !otherElements.some(el => {
                         const elCells = JSON.parse(el.dataset.cells);
@@ -373,20 +346,7 @@
                     });
                 });
 
-                if (!isPathClear) {
-                    return false;
-                }
-
-                return true;
-            }
-
-            showMessage(message) {
-                const messageElement = document.getElementById('message');
-                messageElement.textContent = message;
-                messageElement.style.display = 'block';
-                setTimeout(() => {
-                    messageElement.style.display = 'none';
-                }, 3000);
+                return isPathClear;
             }
         }
 
