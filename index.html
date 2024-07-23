@@ -96,6 +96,11 @@
         #scroll-toggle:hover {
             background-color: #0056b3;
         }
+        #message {
+            font-size: 18px;
+            margin-top: 10px;
+            color: #d9534f;
+        }
     </style>
 </head>
 <body>
@@ -104,6 +109,7 @@
     <button id="scroll-toggle">Disable Scrolling</button>
     <div id="game-container"></div>
     <button id="reset-button">Reset</button>
+    <div id="message"></div>
     <script>
         class Timer {
             constructor(timerId, toggleButtonId) {
@@ -129,7 +135,7 @@
 
                         if (this.timeLeft <= 0) {
                             clearInterval(this.timerInterval);
-                            alert('Time is up! Game over.');
+                            this.showMessage('Time is up! Game over.');
                             this.resetTimer();
                         }
                     }, 1000);
@@ -150,6 +156,14 @@
                     clearInterval(this.timerInterval);
                     this.timerDisplay.textContent = 'Timer: Off';
                 }
+            }
+
+            showMessage(message) {
+                const messageElement = document.getElementById('message');
+                messageElement.textContent = message;
+                setTimeout(() => {
+                    messageElement.textContent = '';
+                }, 3000);
             }
         }
 
@@ -229,7 +243,6 @@
                         document.addEventListener('mouseup', onMouseUp);
                         document.addEventListener('touchmove', onTouchMove);
                         document.addEventListener('touchend', onTouchEnd);
-                        e.preventDefault();
                     }
                 };
 
@@ -284,7 +297,7 @@
                         const newCells = this.calculateCells(newPosition, currentElement.dataset.length, currentElement.dataset.orientation);
                         currentElement.dataset.cells = JSON.stringify(newCells);
                         if (currentElement.dataset.type === 'golden-key' && JSON.stringify(newCells) === JSON.stringify([17, 18])) {
-                            alert('Congratulations!. Now you Can try the real one');
+                            this.showMessage('Congratulations! Now you can try the real one.');
                         }
                     } else {
                         currentElement.style.left = `${startLeft}px`;
@@ -334,6 +347,14 @@
                 }
 
                 return true;
+            }
+
+            showMessage(message) {
+                const messageElement = document.getElementById('message');
+                messageElement.textContent = message;
+                setTimeout(() => {
+                    messageElement.textContent = '';
+                }, 3000);
             }
         }
 
