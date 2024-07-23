@@ -22,9 +22,8 @@
             background-color: #e0e0e0;
             border: 2px solid #ccc;
             position: relative;
-            touch-action: none; /* Add this property to prevent scrolling */
         }
-       .grid-cell {
+        .grid-cell {
             width: 60px;
             height: 60px;
             box-sizing: border-box;
@@ -34,10 +33,10 @@
             align-items: center;
             transition: background-color 0.3s ease;
         }
-       .grid-cell:hover {
+        .grid-cell:hover {
             background-color: #ddd;
         }
-       .candlestick,.golden-key {
+        .candlestick, .golden-key {
             position: absolute;
             display: flex;
             justify-content: center;
@@ -47,13 +46,13 @@
             box-sizing: border-box;
             transition: transform 0.3s ease, background-color 0.3s ease;
         }
-       .candlestick.red {
+        .candlestick.red {
             background-color: red;
         }
-       .candlestick.green {
+        .candlestick.green {
             background-color: green;
         }
-       .golden-key {
+        .golden-key {
             background-color: gold;
             border-color: goldenrod;
         }
@@ -80,8 +79,21 @@
             border: none;
             cursor: pointer;
             font-size: 16px;
+            margin-bottom: 10px;
         }
         #timer-toggle:hover {
+            background-color: #0056b3;
+        }
+        #scroll-toggle {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        #scroll-toggle:hover {
             background-color: #0056b3;
         }
     </style>
@@ -89,6 +101,7 @@
 <body>
     <div id="timer">Time: 30s</div>
     <button id="timer-toggle">Disable Timer</button>
+    <button id="scroll-toggle">Disable Scrolling</button>
     <div id="game-container"></div>
     <button id="reset-button">Reset</button>
     <script>
@@ -129,8 +142,8 @@
             }
 
             toggleTimer() {
-                this.timerEnabled =!this.timerEnabled;
-                this.timerToggle.textContent = this.timerEnabled? 'Disable Timer' : 'Enable Timer';
+                this.timerEnabled = !this.timerEnabled;
+                this.timerToggle.textContent = this.timerEnabled ? 'Disable Timer' : 'Enable Timer';
                 if (this.timerEnabled) {
                     this.startTimer();
                 } else {
@@ -151,7 +164,7 @@
             }
 
             init() {
-                this.container.innerHTML= '';
+                this.container.innerHTML = '';
                 this.createGrid();
                 this.createElements();
                 this.addDragAndDrop();
@@ -233,13 +246,13 @@
                     const dx = clientX - startX;
                     const dy = clientY - startY;
 
-                    let newLeft = startLeft;
-                    let newTop = startTop;
+                    let newLeft = startLeft + dx;
+                    let newTop = startTop + dy;
 
                     if (currentElement.dataset.orientation === 'horizontal') {
-                        newLeft = startLeft + dx;
+                        newTop = startTop;
                     } else {
-                        newTop = startTop + dy;
+                        newLeft = startLeft;
                     }
 
                     currentElement.style.left = `${newLeft}px`;
@@ -289,15 +302,11 @@
                     element.addEventListener('mousedown', onMouseDown);
                     element.addEventListener('touchstart', onMouseDown);
                 });
-
-                this.container.addEventListener('dragstart', (e) => {
-                    e.preventDefault();
-                });
             }
 
             calculateCells(position, length, orientation) {
                 const cells = [];
-                const [top, left]= position;
+                const [top, left] = position;
                 for (let i = 0; i < length; i++) {
                     cells.push(orientation === 'horizontal' ? top * this.gridSize + left + i + 1 : (top + i) * this.gridSize + left + 1);
                 }
@@ -328,9 +337,29 @@
             }
         }
 
+        class ScrollControl {
+            constructor(scrollToggleId) {
+                this.scrollToggle = document.getElementById(scrollToggleId);
+                this.scrollEnabled = true;
+
+                this.scrollToggle.addEventListener('click', () => this.toggleScroll());
+            }
+
+            toggleScroll() {
+                this.scrollEnabled = !this.scrollEnabled;
+                this.scrollToggle.textContent = this.scrollEnabled ? 'Disable Scrolling' : 'Enable Scrolling';
+                if (this.scrollEnabled) {
+                    document.body.style.overflow = 'auto';
+                } else {
+                    document.body.style.overflow = 'hidden';
+                }
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             new Timer('timer', 'timer-toggle');
             new PuzzleGame('game-container');
+            new ScrollControl('scroll-toggle');
         });
     </script>
 </body>
