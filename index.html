@@ -13,20 +13,18 @@
             background-color: #f0f0f0;
             margin: 0;
             font-family: Arial, sans-serif;
-            overflow: hidden; /* Prevent scroll bars */
         }
         #game-container {
-            position: relative;
-            width: 100%;
-            height: 80%; /* Adjust height to fit your design */
             display: grid;
             grid-template-columns: repeat(6, 60px);
             grid-template-rows: repeat(6, 60px);
             gap: 2px;
             background-color: #e0e0e0;
             border: 2px solid #ccc;
+            position: relative;
+            touch-action: none; /* Add this property to prevent scrolling */
         }
-        .grid-cell {
+       .grid-cell {
             width: 60px;
             height: 60px;
             box-sizing: border-box;
@@ -36,10 +34,10 @@
             align-items: center;
             transition: background-color 0.3s ease;
         }
-        .grid-cell:hover {
+       .grid-cell:hover {
             background-color: #ddd;
         }
-        .candlestick, .golden-key {
+       .candlestick,.golden-key {
             position: absolute;
             display: flex;
             justify-content: center;
@@ -49,23 +47,18 @@
             box-sizing: border-box;
             transition: transform 0.3s ease, background-color 0.3s ease;
         }
-        .candlestick.red {
+       .candlestick.red {
             background-color: red;
         }
-        .candlestick.green {
+       .candlestick.green {
             background-color: green;
         }
-        .golden-key {
+       .golden-key {
             background-color: gold;
             border-color: goldenrod;
         }
-        #reset-button, #timer-toggle {
-            position: absolute;
-            bottom: 10px;
-            margin: 10px;
-        }
         #reset-button {
-            left: 10px;
+            margin-top: 20px;
             padding: 10px 20px;
             background-color: #007bff;
             color: white;
@@ -77,9 +70,6 @@
             background-color: #0056b3;
         }
         #timer {
-            position: absolute;
-            top: 10px;
-            right: 10px;
             font-size: 24px;
             margin-bottom: 20px;
         }
@@ -139,8 +129,8 @@
             }
 
             toggleTimer() {
-                this.timerEnabled = !this.timerEnabled;
-                this.timerToggle.textContent = this.timerEnabled ? 'Disable Timer' : 'Enable Timer';
+                this.timerEnabled =!this.timerEnabled;
+                this.timerToggle.textContent = this.timerEnabled? 'Disable Timer' : 'Enable Timer';
                 if (this.timerEnabled) {
                     this.startTimer();
                 } else {
@@ -161,7 +151,7 @@
             }
 
             init() {
-                this.container.innerHTML = '';
+                this.container.innerHTML= '';
                 this.createGrid();
                 this.createElements();
                 this.addDragAndDrop();
@@ -231,12 +221,10 @@
                 };
 
                 const onMouseMove = (e) => {
-                    if (!currentElement) return;
                     moveElement(e.clientX, e.clientY);
                 };
 
                 const onTouchMove = (e) => {
-                    if (!currentElement) return;
                     moveElement(e.touches[0].clientX, e.touches[0].clientY);
                 };
 
@@ -249,9 +237,9 @@
                     let newTop = startTop;
 
                     if (currentElement.dataset.orientation === 'horizontal') {
-                        newLeft = Math.max(0, Math.min(this.container.clientWidth - parseInt(currentElement.style.width), startLeft + dx));
+                        newLeft = startLeft + dx;
                     } else {
-                        newTop = Math.max(0, Math.min(this.container.clientHeight - parseInt(currentElement.style.height), startTop + dy));
+                        newTop = startTop + dy;
                     }
 
                     currentElement.style.left = `${newLeft}px`;
@@ -283,7 +271,7 @@
                         const newCells = this.calculateCells(newPosition, currentElement.dataset.length, currentElement.dataset.orientation);
                         currentElement.dataset.cells = JSON.stringify(newCells);
                         if (currentElement.dataset.type === 'golden-key' && JSON.stringify(newCells) === JSON.stringify([17, 18])) {
-                            alert('Congratulations! You solved the puzzle.');
+                            alert('Congratulations!. Now you Can try the real one');
                         }
                     } else {
                         currentElement.style.left = `${startLeft}px`;
@@ -301,11 +289,15 @@
                     element.addEventListener('mousedown', onMouseDown);
                     element.addEventListener('touchstart', onMouseDown);
                 });
+
+                this.container.addEventListener('dragstart', (e) => {
+                    e.preventDefault();
+                });
             }
 
             calculateCells(position, length, orientation) {
                 const cells = [];
-                const [top, left] = position;
+                const [top, left]= position;
                 for (let i = 0; i < length; i++) {
                     cells.push(orientation === 'horizontal' ? top * this.gridSize + left + i + 1 : (top + i) * this.gridSize + left + 1);
                 }
