@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,6 +15,7 @@
             margin: 0;
             font-family: Arial, sans-serif;
         }
+
         #game-container {
             display: grid;
             grid-template-columns: repeat(6, 60px);
@@ -23,6 +25,7 @@
             border: 2px solid #ccc;
             position: relative;
         }
+
         .grid-cell {
             width: 60px;
             height: 60px;
@@ -33,10 +36,13 @@
             align-items: center;
             transition: background-color 0.3s ease;
         }
+
         .grid-cell:hover {
             background-color: #ddd;
         }
-        .candlestick, .golden-key {
+
+        .candlestick,
+        .golden-key {
             position: absolute;
             display: flex;
             justify-content: center;
@@ -46,16 +52,24 @@
             box-sizing: border-box;
             transition: transform 0.3s ease, background-color 0.3s ease;
         }
+
         .candlestick.red {
             background-color: red;
         }
+
         .candlestick.green {
             background-color: green;
         }
+
         .golden-key {
             background-color: gold;
             border-color: goldenrod;
         }
+
+        .highlight {
+            border: 2px solid #007bff;
+        }
+
         #reset-button {
             margin-top: 20px;
             padding: 10px 20px;
@@ -65,13 +79,16 @@
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
+
         #reset-button:hover {
             background-color: #0056b3;
         }
+
         #timer {
             font-size: 24px;
             margin-bottom: 20px;
         }
+
         #timer-toggle {
             padding: 10px 20px;
             background-color: #007bff;
@@ -81,9 +98,11 @@
             font-size: 16px;
             margin-bottom: 10px;
         }
+
         #timer-toggle:hover {
             background-color: #0056b3;
         }
+
         #message {
             font-size: 18px;
             color: #d9534f;
@@ -99,6 +118,7 @@
         }
     </style>
 </head>
+
 <body>
     <div id="timer">Time: 30s</div>
     <button id="timer-toggle">Disable Timer</button>
@@ -170,8 +190,12 @@
                 this.resetButton = document.getElementById('reset-button');
                 this.cellSize = 60;
                 this.gridSize = 6;
+                this.highlightedElements = [];
                 this.resetButton.addEventListener('click', () => this.init());
                 this.init();
+
+                this.container.addEventListener('mousedown', this.onMouseDown.bind(this));
+                this.container.addEventListener('touchstart', this.onMouseDown.bind(this));
             }
 
             init() {
@@ -232,6 +256,8 @@
                 const onMouseDown = (e) => {
                     if (e.target.classList.contains('candlestick') || e.target.classList.contains('golden-key')) {
                         currentElement = e.target;
+                        this.highlightedElements = Array.from(this.container.querySelectorAll('.candlestick, .golden-key')).filter(el => el !== currentElement);
+                        this.highlightedElements.forEach(el => el.classList.add('highlight'));
                         startX = e.clientX || e.touches[0].clientX;
                         startY = e.clientY || e.touches[0].clientY;
                         startLeft = parseInt(currentElement.style.left);
@@ -293,14 +319,12 @@
                         currentElement.style.top = `${newTop}px`;
                         const newCells = this.calculateCells(newPosition, currentElement.dataset.length, currentElement.dataset.orientation);
                         currentElement.dataset.cells = JSON.stringify(newCells);
-                        if (currentElement.dataset.type === 'golden-key' && JSON.stringify(newCells) === JSON.stringify([17, 18])) {
-                            this.showMessage('Congratulations! Now you can try the real one.');
-                        }
                     } else {
                         currentElement.style.left = `${startLeft}px`;
                         currentElement.style.top = `${startTop}px`;
                     }
 
+                    this.highlightedElements.forEach(el => el.classList.remove('highlight'));
                     document.removeEventListener('mousemove', onMouseMove);
                     document.removeEventListener('mouseup', onMouseUp);
                     document.removeEventListener('touchmove', onTouchMove);
@@ -308,10 +332,8 @@
                     currentElement = null;
                 };
 
-                this.container.querySelectorAll('.candlestick, .golden-key').forEach(element => {
-                    element.addEventListener('mousedown', onMouseDown);
-                    element.addEventListener('touchstart', onMouseDown);
-                });
+                this.container.addEventListener('mousedown', onMouseDown);
+                this.container.addEventListener('touchstart', onMouseDown);
             }
 
             calculateCells(position, length, orientation) {
@@ -362,4 +384,5 @@
         });
     </script>
 </body>
+
 </html>
